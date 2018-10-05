@@ -33,8 +33,27 @@ Download the original scans using the steps from this website: https://wiki.canc
 
 ## Follow the notebook
 
+Pre processing: lidc-preprocessing.jpynb
+
+Modeling example:
+
+- keras + tf CNN 3D: CNN_keras_3D.jpynb
+- keras + tf CNN 2D: CNN_keras_3D.jpynb
 
 
 ## Issues
 
 Currently, the code uses the pylidc function 'cluster_annotations' twice: ones to create a DataFrame of annotations, a second time to export the images. Since this function takes some time, this could be made more efficient
+
+This is by no means an 'optimal' approach in the sense that I have not experimented with hyperparameters of the pre-processing like
+
+- resampling size
+- 'borderline malignancy' definition
+- output size
+- number of 2D slices
+- extensive CNN alterations
+
+But it is enough to get a model running as one can see from the provided examples. It should be able to get you up to speed for using deep learning on actual medical images!
+
+
+
