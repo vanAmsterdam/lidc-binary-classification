@@ -123,5 +123,14 @@ def resample_and_crop(scans, path, size_mm = 5, export_mask = False):
             except:
                 print("-failed")
                 
-                
+def flatten_multiindex_columns(df, sep = "_"):
+    '''
+    If a pandas DataFrame has a hierarchical index,
+    flatten to single level
+    '''
+    col_vals = df.columns.values
+    flattened = [sep.join(x) for x in col_vals]
+    stripped = [x[:-1] if sep == x[-1] else x for x in flattened]
+    df.columns = stripped
+    return df
               
