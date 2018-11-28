@@ -10,8 +10,9 @@ import torch.optim as optim
 import torchvision.models as models
 from torch.autograd import Variable
 from tqdm import tqdm
+from torchsummary import summary
 
-import utilstrain
+import utils
 import model.net as net
 import model.data_loader as data_loader
 from evaluate import evaluate
@@ -76,11 +77,11 @@ def train(model, optimizer, loss_fn, dataloader, metrics, params):
                 # compute all metrics on this batch
                 summary_batch = {metric:metrics[metric](output_batch, labels_batch)
                                  for metric in metrics}
-                summary_batch['loss'] = loss.data[0]
+                summary_batch['loss'] = loss.item()
                 summ.append(summary_batch)
 
             # update the average loss
-            loss_avg.update(loss.data[0])
+            loss_avg.update(loss.item())
 
             t.set_postfix(loss='{:05.3f}'.format(loss_avg()))
             t.update()
@@ -172,19 +173,15 @@ if __name__ == '__main__':
     # fetch dataloaders
     # dataloaders = data_loader.fetch_dataloader(['train', 'val'], args.data_dir, params)
     # dataloaders = data_loader.fetch_dataloader(['train', 'val'], "data", params)
-    dataloaders = data_loader.fetch_dataloader(df, types = ["train", "test"])
+    dataloaders = data_loader.fetch_dataloader(types = ["train", "valid"])
+    # dataloaders = data_loader.fetch_dataloader(types = ["train"])
     train_dl = dataloaders['train']
-    test_dl = dataloaders['val']
+    valid_dl = dataloaders['valid']
 
     logging.info("- done.")
 
     # Define the model and optimizer
-    # model = net.Net(params).cuda() if params.cuda else net.Net(params)
-
-    model = models.resnet18(pretrained=False)
-    ## add final FC layer
-    model.fc2 = torch.nn.Linear(1000, 2)
-    model.cuda()
+    model = net.Net(params).cuda() if params.cuda else net.Net(params)
     
     optimizer = optim.Adam(model.parameters(), lr=params.learning_rate)
 
@@ -193,6 +190,13 @@ if __name__ == '__main__':
     metrics = net.metrics
 
     # Train the model
+    # print(model)
+    # print(summary(model, (3, 224, 224), batch_size=1))
     logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
-    train_and_evaluate(model, train_dl, val_dl, optimizer, loss_fn, metrics, params, args.model_dir,
+    for split, dl in dataloaders.items():
+        logging.info("Number of %s examples: %s" % (split, str(len(dl.dataset))))
+        # logging.info("Number of valid examples: {}".format(len(valid.dataset)))
+    
+    # train(model, optimizer, loss_fn, train_dl, metrics, params)
+    train_and_evaluate(model, train_dl, valid_dl, optimizer, loss_fn, metrics, params, args.model_dir,
                        args.restore_file)

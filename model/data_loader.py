@@ -12,7 +12,11 @@ import re
 # and http://pytorch.org/tutorials/beginner/data_loading_tutorial.html
 # define a training image loader that specifies transforms on images. See documentation for more details.
 tfms_train = transforms.Compose([
-    transforms.Resize((224, 224)),
+    # transforms.Resize((224, 224)),
+    transforms.RandomResizedCrop(224, scale = (.8, 1)),
+    transforms.RandomRotation(90),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
     # transforms.Resize((224, 224)),  # resize the image to 64x64 (remove if images are already 64x64),
     # transforms.RandomHorizontalFlip(),  # randomly flip image horizontally
     # transforms.RandomAffine(10, translate=(.1, .1), scale=(.1, .1), shear=.1, resample=False, fillcolor=0),
@@ -46,30 +50,7 @@ class LIDCDataset(Dataset):
 
         assert ("name" in df.columns) & ("label" in df.columns)
 
-        # self.pids = os.listdir(data_dir)
-        # self.segmdict = {}
-        # for pid in self.pids:
-        #     self.segmdict[pid] = pd.DataFrame(
-        #         {"pid": str(pid),
-        #          "segmentation_file": os.listdir(os.path.join(data_dir, pid))}
-        #          )
-        # self.df = pd.concat(self.segmdict, ignore_index = True)
-        # self.df = pd.Series(self.segmdict)
-        # self.df = self.df.reset_index()
-        # self.df.columns = ["pid", "segmentation_file"]
-        # self.df["pid"] = self.df.pid.astype(str)
-        # self.df["segmentation_name"] = self.df.segmentation_file.apply(lambda x: x[:-4])
-        # self.df["segmentation_path"] = self.df.apply(lambda x: os.path.join(self.data_dir, x["pid"], x["segmentation_file"]), axis = 1)
-        # self.df["segmentation_id"] = self.df.apply(lambda x: x["pid"] + "_" + x["segmentation_name"], axis = 1)
-        # self.df["label"] = self.df.segmentation_name.apply(lambda x: int("body" in x))
-
-        # self.filenames = [os.listdir(os.path.join(data_dir, x)) for x in pids]
-        # self.filenames = [item for sublist in self.filenames for item in sublist]
-        # self.filenames = [f for f in self.filenames if f.endswith('.png')]
-
         # create dicts to go from pid to idx and vice versa
-        # self.pids = [int(re.findall('\d+', x)[0]) for x in self.filenames]
-        # self.ids        = list(self.df.segmentation_id)
         self.ids        = df.name.tolist()
         self.fpaths     = [os.path.join(data_dir, x) for x in self.df.name.tolist()]
         self.labels     = list(self.df.label)
@@ -77,10 +58,6 @@ class LIDCDataset(Dataset):
         self.label_dict = dict(zip(self.ids, self.labels))
         self.id_to_idx  = dict(zip(self.ids, range(len(self.ids))))
         self.idx_to_id  = dict(zip(range(len(self.ids)), self.ids))
-
-        # self.labels = [int(os.path.split(filename)[-1][0]) for filename in self.filenames]
-        # self.label_df = pd.read_csv(os.path.join(data_dir, "labels.csv"), index_col = "pid")
-        # self.labels = self.label_df.label.to_dict()
 
     def print_test(self):
         print(self.df.shape)
@@ -101,13 +78,13 @@ class LIDCDataset(Dataset):
             label: (int) corresponding label of image
         """
         # print("opening %s " % self.fpath_dict[self.idx_to_id[idx]])
-        # image = Image.open(self.fpath_dict[self.idx_to_id[idx]]).convert("RGB")  # PIL image
-        image = Image.open(self.fpath_dict[self.idx_to_id[idx]]).convert("L")  # L for grayscale
+        image = Image.open(self.fpath_dict[self.idx_to_id[idx]]).convert("RGB")  # PIL image
+        # image = Image.open(self.fpath_dict[self.idx_to_id[idx]]).convert("L")  # L for grayscale
         image = self.transform(image)
         return image, self.label_dict[self.idx_to_id[idx]]
 
 
-def fetch_dataloader(df, types = ["train"], data_dir = "data", params = None, batch_size = 128,
+def fetch_dataloader(types = ["train"], data_dir = "data", df = None, params = None, batch_size = 128,
                      tfms = []):
     """
     Fetches the DataLoader object for each type in types from data_dir.
@@ -121,6 +98,8 @@ def fetch_dataloader(df, types = ["train"], data_dir = "data", params = None, ba
     Returns:
         data: (dict) contains the DataLoader object for each type in types
     """
+    if df is None:
+        df = pd.read_csv(os.path.join(data_dir, "labels.csv"))
     dataloaders = {}
 
     splits = [x for x in types if x in df.split.unique().tolist()]
