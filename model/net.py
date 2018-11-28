@@ -6,6 +6,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
 
+class Flatten(torch.nn.Module):
+    def forward(self, input):
+        return input.view(input.size(0), -1)
 
 def Net(params):
     model = models.resnet18(pretrained=False)
@@ -17,10 +20,25 @@ def Net(params):
     num_features = model.fc.in_features
     num_feat2 = int(num_features / 2)
     model.fc = torch.nn.Linear(num_features, num_feat2)
-    model.add_module("fc_rl1", torch.nn.ReLU(inplace = True))
-    model.add_module("fc_bn1", torch.nn.BatchNorm2d(num_feat2))
-    model.add_module("fc_do1", torch.nn.Dropout(params.dropout_rate, inplace=True))
-    model.add_module("fc_fc2", torch.nn.Linear(num_feat2, 2))
+    model.add_module("flatten", Flatten())
+    tail = torch.nn.Sequential(
+        torch.nn.ReLU(inplace = True),
+        torch.nn.BatchNorm2d(num_feat2),
+        # torch.nn.Dropout(params.dropout_rate, inplace=True),
+        torch.nn.Dropout(.25, inplace=True),
+        torch.nn.Linear(num_feat2, 2)
+        )
+    model.add_module("tail", tail)
+    # model = torch.nn.Sequential(*model.children(), *tail)
+    # # model.add_module("tail", tail)
+    # out0  = model(im0[0].unsqueeze(0))
+    # out0.shape
+    # model.fc = torch.nn.Linear(num_features, num_feat2)
+    # model.add_module("fc_rl1", torch.nn.ReLU(inplace = True))
+    # model.add_module("fc_bn1", torch.nn.BatchNorm2d(num_feat2))
+    # model.add_module("fc_do1", torch.nn.Dropout(params.dropout_rate, inplace=True))
+    # model.add_module("fc_fc2", torch.nn.Linear(num_feat2, 2))
+
     return model
 
 
