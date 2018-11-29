@@ -1,0 +1,7 @@
+variable,label,type,distribution,param_1,param_2,b_x,b_t,b_y
+u1,u1,noise,Bernoulli,0.5,,1,1,1
+u2,u2,noise,Bernoulli,0.5,,1,0.5,0
+z,z,noise,Bernoulli,0.5,,0,0.5,0.2
+x,collider,recoded,Normal,0,0.01,,0,0
+t,treatment,recoded,Bernoulli,0,0.1,0,,1
+y,survival,recoded,Normal,0,0.01,0,0,
