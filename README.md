@@ -1,21 +1,44 @@
 # lidc-binary-classification
-This repository contains code to pre-process the LIDC-IDRI dataset of CT-scans with pulmonary nodules into a binary classification problem, easy to use for learning deep learning
 
+This repository contains code to pre-process the LIDC-IDRI dataset of CT-scans
+with pulmonary nodules into a binary classification problem, easy to use for learning deep learning.
+
+Input:
+
+- many .dcm files and annotations stored in XML database
+
+Output:
+
+- neat png files
+- with labels in csv file
+
+## Usage
+
+[Download](@Donwloading) the Data
 
 ## Overview
 
 The workflow consists of a few steps
 
-1. use the pylidc library to process image annotations and segmentations (identifying malignant vs benign and the locations of the nodules)
+### Downloading
+
+0. download data from TCIA (133 Gb) from official repository [http://doi.org/10.7937/K9/TCIA.2015.LO9QL9SX](http://doi.org/10.7937/K9/TCIA.2015.LO9QL9SX)
+Note: when using the `NBIA Data Retrieverz, be sure to select`Classic Directory Name`
+
+### Extract regions, annotations and segmentations
+
+Using the [pylidc library](https://github.com/notmatthancock/pylidc) to do the heavy lifting:
+identifying malignant vs benign and the locations of the nodules
+
+### format
+
 2. resample to 1mm x 1mm x 1mm and process HU values of different scanners
 3. export cropped regions around the nodules in 2 ways: 3D cubes, 2D slices
 
-
 ## Download scans
 
-Download the original scans using the steps from this website: https://wiki.cancerimagingarchive.net/display/Public/LIDC-IDRI
-
-
+Download the original scans using the steps from this website:
+[https://www.cancerimagingarchive.net/collection/lidc-idri/](https://www.cancerimagingarchive.net/collection/lidc-idri/)
 
 ## Setup python environment
 
@@ -29,7 +52,7 @@ Download the original scans using the steps from this website: https://wiki.canc
 
 `pip install pylidc pypng`
 
-4. configure pylidc to know where the scans are located, follow these steps: https://pylidc.github.io/install.html
+4. configure pylidc to know where the scans are located, follow these steps: <https://pylidc.github.io/install.html>
 
 ## Follow the notebook
 
@@ -39,7 +62,6 @@ Modeling example:
 
 - keras + tf CNN 3D: CNN_keras_3D.jpynb
 - keras + tf CNN 2D: CNN_keras_3D.jpynb
-
 
 ## Issues
 
@@ -54,6 +76,3 @@ This is by no means an 'optimal' approach in the sense that I have not experimen
 - extensive CNN alterations
 
 But it is enough to get a model running as one can see from the provided examples. It should be able to get you up to speed for using deep learning on actual medical images!
-
-
-
