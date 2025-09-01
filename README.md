@@ -22,8 +22,11 @@ The workflow consists of a few steps
 
 ### Downloading
 
+- Option 1. Open the [manifest](data/raw/TCIA_LIDC-IDRI_20200921.tcia) in  `NBIA Data Retriever`.
+On a mac, this worked by dragging the manifest into the icon. Be sure to select `Classic Directory Name`
+
 0. download data from TCIA (133 Gb) from official repository [http://doi.org/10.7937/K9/TCIA.2015.LO9QL9SX](http://doi.org/10.7937/K9/TCIA.2015.LO9QL9SX)
-Note: when using the `NBIA Data Retrieverz, be sure to select`Classic Directory Name`
+*time-taken: 3.5 hours*
 
 ### Extract regions, annotations and segmentations
 
@@ -34,6 +37,12 @@ identifying malignant vs benign and the locations of the nodules
 
 2. resample to 1mm x 1mm x 1mm and process HU values of different scanners
 3. export cropped regions around the nodules in 2 ways: 3D cubes, 2D slices
+
+Time taken (Mac m4) 2 hours
+
+### Make measurements for auxilliary information / prediction targets
+
+time taken (12 workers) ~5 seconds
 
 ## Download scans
 

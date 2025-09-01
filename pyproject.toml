@@ -5,5 +5,26 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pylidc>=0.2.3",
+    "nibabel>=5.3.2",
+    "pandas>=2.3.2",
+    "pillow<13",
+    "pydicom<3",
+    "pylidc",
+    "pypng>=0.20220715.0",
+    "setuptools>=80.9.0",
+    "tqdm>=4.67.1",
 ]
+[tool.uv.sources]
+# Pin to a commit; you can also use refs/heads/main.zip or a tag zip
+pylidc = { url = "https://github.com/notmatthancock/pylidc/archive/2cb87f19d4a3f99d527c35a8daad43578419cc1b.zip" }
+
+[dependency-groups]
+dev = [
+    "debugpy>=1.8.16",
+    "jupyter>=1.1.1",
+]
+fastai = [
+    "fastai>=2.8.4",
+]
+# optional if the Python project lives in a subfolder:
+# problemdep = { url = "https://github.com/ORG/REPO/archive/COMMIT_SHA.zip", subdirectory = "python_pkg_dir" }

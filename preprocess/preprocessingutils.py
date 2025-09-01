@@ -4,7 +4,7 @@ import pandas as pd
 import pylidc as pl
 import pydicom
 import pickle
-from sklearn.preprocessing import PowerTransformer
+# from sklearn.preprocessing import PowerTransformer
 
 def annotation_to_dict(ann):
     '''
@@ -165,8 +165,9 @@ def normalize_to_8bit(x, *args, **kwargs):
     return normalized_to_8bit(normalize(x, *args, **kwargs))
 
 def pwr_transform(x, train_ids=None):
+    raise NotImplementedError("Power transformation is not implemented")
     x  = np.array(x).reshape(-1,1)
-    pt = PowerTransformer(method="yeo-johnson")
+    # pt = PowerTransformer(method="yeo-johnson")
     if train_ids is None:
         pt.fit(x)
     else:
