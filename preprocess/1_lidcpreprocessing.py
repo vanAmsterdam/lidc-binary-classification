@@ -287,7 +287,7 @@ def main(args):
                     continue
                 last_pid = current_pid
 
-            if not ann_id in existing_slices:
+            if (not ann_id in existing_slices) or RESTART:
                 print("slicing annotation {}".format(ann_id))
 
                 # crop and normalize
@@ -337,6 +337,7 @@ if __name__ == "__main__":
     parser.add_argument('--min-mm2', type=float, default=0, help='Minimum area in mm^2')
     parser.add_argument('--write-noresamp-nodules', action='store_true', help='Export non-resampled nodules')
     parser.add_argument('--do-resamp', action='store_true', default=True, help='Resample and crop for 3D nodules')
+    parser.add_argument('--no-resamp', action='store_false', dest='do-resamp')
     parser.add_argument('--do-slices', action='store_true', default=True, help='Generate 2D slices')
     parser.add_argument('--test-mode', action='store_true', help='Test mode')
     parser.add_argument('--restart', action='store_true', help='Restart from the beginning, ignoring previous progress')

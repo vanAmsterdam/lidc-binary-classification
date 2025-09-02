@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image
 from tqdm import tqdm
+import numpy as np
 
 from argparse import ArgumentParser
 
@@ -21,7 +22,7 @@ def fetch_data(args):
     outcome_df = pd.DataFrame(outcomes)
 
     # binarize at median cutoff
-    outcome_df['y_binary'] = outcomes.apply(lambda x: 1 if x > outcomes.median() else 0)
+    outcome_df['label'] = outcomes.apply(lambda x: 1 if x > outcomes.median() else 0)
 
     # from the measurement_df, take the first mid-slice
     mid_slice_df = measurement_df[measurement_df["is_middle_slice"]]
@@ -54,22 +55,30 @@ def main():
     parser = ArgumentParser(description="Create experiments using pre-processed LIDC data")
     parser.add_argument("--data-dir", type=Path, default="data/nodules2d", help="Path to the pre-processed LIDC data directory")
     parser.add_argument("--output-dir", type=Path, default="experiments", help="Path to the output directory for experiment results")
-    parser.add_argument("--tag", type=str, default="malignancy", help="Tag for the experiment")
     parser.add_argument("--outcome", type=str, default="malignancy", help="Outcome variable to use ")
+    parser.add_argument("--tag", type=str, required=False, help="Tag for the experiment")
     parser.add_argument('--out-size', default=70, type=int, help='out size, uses center crop, if None, no resizing will be done')
-    parser.add_argument("--")
+    parser.add_argument('--stack-images', action='store_true', help='Whether to stack images into a single array')
 
     args = parser.parse_known_args()[0]
     args = parser.parse_args()
 
+    print(f"preparing experiment for outcome {args.outcome}")
+
     outcome_df = fetch_data(args)
 
     # create output directory
-    exp_dir = args.output_dir / args.tag
+    if args.tag is None:
+        tag = args.outcome
+    else:
+        tag = args.tag
+
+    exp_dir = args.output_dir / tag
     exp_dir.mkdir(parents=True, exist_ok=True)
 
     # if cropping, copy all cropped images to new directory
     if args.out_size is not None:
+        img_list = []
         img_dir = args.data_dir / "imgs"
         cropped_dir = exp_dir / "cropped_images"
         cropped_dir.mkdir(parents=True, exist_ok=True)
@@ -77,11 +86,19 @@ def main():
         # get ids from outcome_df
         img_ids = outcome_df['id'].values
         outcome_df['img_path'] = [cropped_dir / f"{img_id}.png" for img_id in img_ids]
+        print(f"cropping and copying {len(img_ids)} images to {cropped_dir}")
         for img_id in tqdm(img_ids):
             img_path = img_dir / f"{img_id}.png"
             cropped_img = center_crop_image(img_path, output_size=(args.out_size, args.out_size))
             cropped_img.save(cropped_dir / f"{img_id}.png")
+            if args.stack_images:
+                # convert to numpy array and save as .npy file
+                img_list.append(np.array(cropped_img))
 
+        if args.stack_images:
+            imgs = np.stack(img_list, axis=0, dtype=np.uint8)
+            labels = outcome_df['label'].values
+            np.savez_compressed(exp_dir / "imgs_labels.npz", imgs=imgs, labels=labels)
         # check if the number of images in the cropped directory matches the number of ids
         if len(list(cropped_dir.glob("*.png"))) != len(img_ids):
             print("Warning: Some images were not cropped successfully.")
@@ -90,3 +107,6 @@ def main():
 
     # write outcome_df
     outcome_df.to_csv(exp_dir / "labels.csv", index=False)
+
+if __name__ == "__main__":
+    main()

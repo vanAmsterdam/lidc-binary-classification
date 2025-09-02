@@ -104,7 +104,7 @@ def load_png_as_array(path: Path) -> np.ndarray:
     # If RGB/RGBA, convert to single-channel grayscale
     if img.mode not in ("I;16", "I", "L"):
         img = img.convert("L")
-    arr = np.array(img)
+    arr = np.array(img, dtype=np.uint8)
     return arr
 
 
@@ -258,6 +258,18 @@ def main(args):
     print(f"Wrote {len(results)} rows to {data_dir / 'measurements.csv'}")
     print(f"Wrote {len(df_consensus)} rows to {data_dir / 'measurements_consensus.csv'}")
 
+    # optionally export stacks of slices
+    if args.save_stacks:
+        print("exporting as stacked arrays")
+        img_paths = [p for _, p, _ in pairs]
+        mask_paths = [p for _, _, p in pairs]
+        img_list = [load_png_as_array(p) for p in img_paths]
+        mask_list = [binarize_mask(load_png_as_array(p)) for p in mask_paths]
+        imgs = np.stack(img_list, axis=0, dtype=np.uint8)
+        masks = np.stack(mask_list, axis=0, dtype=bool)
+
+        np.savez_compressed(data_dir / "imgs_masks.npz", imgs=imgs, masks=masks)
+
     return
 
 
@@ -275,6 +287,7 @@ if __name__ == "__main__":
                     help="Number of parallel workers (0 or 1 = no parallelism).")
     ap.add_argument("--test_run", action="store_true",
                     help="If set, process only 100 images for testing.")
+    ap.add_argument("--save_stacks", action="store_true", help="save stacks of imgs and masks as npy files")
     # args = ap.parse_known_args()[0]
     args = ap.parse_args()
 
